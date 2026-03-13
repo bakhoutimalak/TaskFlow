@@ -1,56 +1,63 @@
-import { useState, useEffect } from 'react';
-import Header from './components/Header';
-import Sidebar from './components/Sidebar';
-import MainContent from './components/MainContent';
-
-interface Project { 
-  id: string; 
-  name: string; 
-  color: string; 
+import { useState, useEffect } from "react";
+import { UseAuth } from "./features/auth/authContext";
+import Login from "./features/auth/Login";
+import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
+import MainContent from "./components/MainContent";
+interface Project {
+  id: string;
+  name: string;
+  color: string;
 }
-
-interface Column { 
-  id: string; 
-  title: string; 
-  tasks: string[]; 
+interface Column {
+  id: string;
+  title: string;
+  tasks: string[];
 }
-
 export default function App() {
+  const { state: authState } = UseAuth();
+  if (!authState.user) {
+    return <Login />;
+  }
+  return <Dashboard />;
+}
+function Dashboard() {
+  const { state: authState, dispatch } = UseAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    console.log('useEffect déclenché !');
     async function fetchData() {
       try {
-        const [projRes, colRes] = await Promise.all([
-        fetch('http://localhost:4000/projects'),
-        fetch('http://localhost:4000/columns'),
+        const [p, co] = await Promise.all([
+          fetch("http://localhost:4000/projects"),
+          fetch("http://localhost:4000/columns"),
         ]);
-        setProjects(await projRes.json());
-        setColumns(await colRes.json());
-
-        console.log('Projets:', projects);
-        console.log('Colonnes:', columns);
-
-      } catch (error) {
-        console.error('Erreur:', error);
+        setProjects(await p.json());
+        setColumns(await co.json());
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
     }
     fetchData();
-  }, []); // [] = une seule fois au montage
-  if (loading) return <div style={{padding:'2rem'}}>Chargement...</div>;
+  }, []);
+  if (loading) return <div style={{ padding: "2rem" }}>Chargement...</div>;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Header title="TaskFlow" onMenuClick={() => setSidebarOpen(p => !p)} />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Sidebar projects={projects} isOpen={sidebarOpen} />
-        <MainContent columns={columns} />
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      {" "}
+      <Header
+        title="TaskFlow"
+        onMenuClick={() => setSidebarOpen((p) => !p)}
+        userName={authState.user?.name}
+        onLogout={() => dispatch({ type: "LOGOUT" })}
+      />{" "}
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        <Sidebar projects={projects} isOpen={sidebarOpen} />{" "}
+        <MainContent columns={columns} />{" "}
+      </div>{" "}
     </div>
   );
 }
