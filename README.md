@@ -1,8 +1,4 @@
 # TP 1 — Next.js : Du CSR au SSR
-
-> **Module :** Développement Web Avancé  
-> **Sujet :** Passage du rendu côté client (CSR) au rendu côté serveur (SSR) avec Next.js
-
 ---
 
 ## Q1. Structure React Vite vs Next.js
